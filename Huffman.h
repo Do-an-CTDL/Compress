@@ -22,6 +22,8 @@ public:
 	char GetChar() const;
 	string GetCode() const;
 	int GetFreq() const;
+	void SetChar(char c);
+	void SetCode(string s);
 	
 	static bool IsAvailable(char c, vector <Huffman*>_arr);
 	static int FindPos(char c, vector <Huffman*>_arr);
@@ -37,7 +39,10 @@ public:
 	static string DecimalToBinary(int x);
 	static string BinaryToHex(string& s);
 	static string BinaryTo32(string& s);
+	static string _32ToBinary(string& s);
 	
+	static string ReadLine(int pos, string s);
 	static void Encoding(string _name);
+	static void Decoding(string _name);
 };
 

@@ -2,6 +2,8 @@
 
 
 Huffman::Huffman() {
+	_char = NULL;
+	_frq = 0;
 	_left = NULL;
 	_right = NULL;
 }
@@ -28,6 +30,14 @@ string Huffman::GetCode() const {
 
 int Huffman::GetFreq() const {
 	return _frq;
+}
+
+void Huffman::SetChar(char c) {
+	_char = c;
+}
+
+void Huffman::SetCode(string s) {
+	_code = s;
 }
 
 bool Huffman::IsAvailable(char c, vector <Huffman*> _arr) {
@@ -218,6 +228,46 @@ string Huffman::BinaryTo32(string& s) {
 	return result;
 }
 
+string Huffman::_32ToBinary(string& s) {
+	vector <Huffman*> _dic; //Tao bang tra cuu
+	for (int i = 0; i < 32; i++) {
+		_dic.resize(i + 1);
+		_dic[i] = new Huffman;
+		if (i >= 10) {
+			_dic[i]->_char = char(65 + i - 10);
+		}
+		else {
+			_dic[i]->_char = i + '0';
+		}
+		_dic[i]->_code = DecimalToBinary(i);
+	}
+
+	string result = "";
+	for (int i = 0; i < s.length(); i++) {
+		string tmp = FindCode(_dic, s[i]);
+		tmp = tmp.substr(3);
+		result += tmp;
+	}
+
+	for (int i = 0; i < _dic.size(); i++) {
+		delete _dic[i];
+	}
+	_dic.clear();
+	return result;
+}
+
+string Huffman::ReadLine(int pos, string s) {
+	string result = "";
+	for (int i = pos; i < s.length(); i++) {
+		if (s[i] != '\n') {
+			result += s[i];
+		}
+		else {
+			return result;
+		}
+	}
+}
+
 void Huffman::Encoding(string _name) {
 	vector <Huffman*> _arr;
 	Huffman::CreateNode(_name, _arr);
@@ -240,10 +290,17 @@ void Huffman::Encoding(string _name) {
 	}
 
 	//Ma hoa file txt
+	_output << _tmp.size() << endl; //Ghi lai bang ma Huffman de cho viec ma hoa
+	for (int i = 0; i < _tmp.size(); i++) {
+		if (_tmp[i]->_char == '\n') {
+			_output << "\\n";
+		}
+		else {
+			_output << _tmp[i]->_char;
+		}
+		_output << _tmp[i]->_code << endl;
+	}
 
-	/*for (int i = 0; i < _tmp.size(); i++) {
-		_output << _tmp[i]->GetChar() << _tmp[i]->GetCode() << endl;
-	}*/
 	string s;
 	while (!_input.eof()) {
 		char* Buffer = new char;
@@ -252,13 +309,98 @@ void Huffman::Encoding(string _name) {
 		}
 		delete Buffer;
 	}
+	_output << s.length() << endl;
 	_output << BinaryTo32(s);
 	
-	
+	for (int i = 0; i < _tmp.size(); i++) {
+		delete _tmp[i];
+	}
 
 	_input.close();
 	_output.close();
 	delete root;
 	_arr.clear();
 	_tmp.clear();
+}
+
+void Huffman::Decoding(string _name) {
+	fstream _input;
+	_input.open(_name, ios::in | ios::binary);
+	if (_input.fail()) {
+		cout << "Can't open this file" << endl;
+		return;
+	}
+
+	stringstream ss;  //Luu toan bo nd file vao chuoi _data
+	ss << _input.rdbuf();
+	string _data = ss.str();
+	_input.close();
+
+	//Tai tao lai bo ma Huffman
+	string tmp = ReadLine(0, _data);
+	int N = atoi(tmp.c_str()); //So luong ki tu co trong bo ma Huffman
+	int pos = 2; //Bien pos luu lai vi tri dang doc
+	vector <Huffman*> _arr;
+	for (int i = 0; i < N; i++) {
+		tmp = ReadLine(pos, _data); //Doc tung dong lay ki tu va ma cua chung
+		pos = pos + tmp.length() + 1; //Doi vi tri doc xuong dong tiep theo
+		Huffman* _a = new Huffman;
+		if (tmp[0] != '\\') { //TH dac biet la ki tu xuong dong (ki tu duoc luu tru la \n)
+			_a->_char = tmp[0]; //Chu cai dau tien trong chuoi la ki tu
+			_a->_code = tmp.substr(1); //Nhung chu cai con lai la ma
+		}
+		else {
+			_a->_char = '\n';
+			_a->_code = tmp.substr(2);
+		}
+		_arr.push_back(_a);
+
+	}
+
+	//Lay do dai cua chuoi ban dau (vi khi ma hoa co them bit '0' de du bit)
+	tmp = ReadLine(pos, _data); 
+	pos = pos + tmp.length() + 1;
+	int len = atoi(tmp.c_str());
+	
+	//Sao chep chuoi ma hoa
+	tmp.clear();
+	for (int i = pos; i < _data.size(); i++) {
+		tmp += _data[i];
+	}
+	tmp = _32ToBinary(tmp); //Ma hoa chuoi he 32 thanh he nhi phan
+	if (tmp.length() > len) { //Chuan hoa chuoi thanh co so bit bang dung chuoi ban dau
+		tmp = tmp.substr(tmp.length() - len);
+	}
+
+	//Bat dau ma hoa va luu lai vao file txt
+	fstream _output;
+	_output.open("result.txt", ios::out);
+	if (_output.fail()) {
+		cout << "Failed";
+		return;
+	}
+	//int max = _arr.back()->_code.size();
+
+	string s = ""; //chuoi s de luu chuoi
+	string s1; //chuoi s1 dung de so sanh
+	for (int i = 0; i < tmp.size(); i++) {
+		s += tmp[i];
+		if (i + 1 < tmp.size()) {
+			s1 = s + tmp[i + 1];
+		}
+		else {
+			s1 += '3'; //TH doc nhung bit cuoi cung
+		}
+
+		if (FindChar(s, _arr) != NULL && FindChar(s1, _arr) == NULL) {
+			_output << FindChar(s, _arr);
+			s.clear();
+			s1.clear();
+		}
+	}
+	_output.close();
+
+	for (int i = 0; i < _arr.size(); i++) { //Xoa bang tra cuu
+		delete _arr[i];
+	}
 }
