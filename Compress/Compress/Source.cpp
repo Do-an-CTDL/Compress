@@ -1,11 +1,20 @@
 #include <conio.h>
 #include "Huffman.h"
+#include "Folder.h"
 
 
 void main() {
 	string _name;
-	cout << "Input name: ";
-	getline(cin, _name);
+	/*cout << "Input name: ";
+	getline(cin, _name);*/
+
+	Folder a;
+
+	a.Input(1);
+	a.EncodeFolder();
+
+	a.Input(0);
+	//a.DecodeFolder();
 
 	//fstream _input;
 	//_input.open(_name, ios::in | ios::binary);
@@ -64,10 +73,10 @@ void main() {
 	//}
 
 
-	Huffman::Encoding(_name);
+	//Huffman::Encoding(_name);
 
-	_name = "Test01";
-	Huffman::Decoding(_name);
+	/*_name = "Test01";
+	Huffman::Decoding(_name);*/
 
 	//_input.close();
 

@@ -1,3 +1,7 @@
+#ifndef CLUSTER_H
+#define CLUSTER_H
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -6,8 +10,7 @@
 
 using namespace std;
 
-class Huffman
-{
+class Huffman{
 private:
 	char _char;
 	int _frq;
@@ -17,7 +20,7 @@ private:
 public:
 	Huffman();
 	Huffman(char c);
-	virtual ~Huffman();
+	~Huffman();
 
 	char GetChar() const;
 	string GetCode() const;
@@ -27,7 +30,7 @@ public:
 	
 	static bool IsAvailable(char c, vector <Huffman*>_arr);
 	static int FindPos(char c, vector <Huffman*>_arr);
-	static void CreateNode(string _name, vector <Huffman*>& _arr); //Create node
+	static void CreateNode(string _name, vector <Huffman*>& _arr, vector <char>&); //Create node
 
 	static void Arrange(vector <Huffman*>& _arr);
 	static Huffman* CreateTree(vector <Huffman*>& _arr);
@@ -42,7 +45,10 @@ public:
 	static string _32ToBinary(string& s);
 	
 	static string ReadLine(int pos, string s);
-	static void Encoding(string _name);
-	static void Decoding(string _name);
+	static void Encoding(vector <Huffman*> arr, vector <char> data, string, string = "");
+	static void Decoding(string _name, string = "", string = "");
 };
 
+
+
+#endif

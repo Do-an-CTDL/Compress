@@ -55,36 +55,44 @@ int Huffman::FindPos(char c, vector <Huffman*> _arr) {
 			return i;
 		}
 	}
+	return 0;
 }
 
-void Huffman::CreateNode(string _name, vector <Huffman*>& _arr) {
+void Huffman::CreateNode(string _name, vector <Huffman*>& _arr, vector <char> &data) {
 	
-	ifstream _input(_name);
+	string _nameout = "Test/" + _name;
+	_name = "Tests/" + _name;
+	ifstream f_read(_name, ios::binary | ios::in);
+	
 
-	if (_input.fail()) {
+	
+	
+	char x;
+	if (f_read.fail()) {
 		cout << "Can't open this file" << endl;
 		return;
 	}
-	_input.unsetf(ios::skipws);
+	f_read.unsetf(ios::skipws);
 
-	while (!_input.eof()) {
-		char* Buffer = new char;
-		if (_input.read(Buffer, 1)) {
 
-			
-			if (IsAvailable(*Buffer, _arr)) {
-				int pos = FindPos(*Buffer, _arr);
-				_arr[pos]->_frq++;
-			}
-			else {
-				Huffman* tmp = new Huffman(*Buffer);
-				_arr.push_back(tmp);
-			}
+	while (f_read >> x) {
+		
+		data.push_back(x);
+		if (IsAvailable(x, _arr)) {
+			int pos = FindPos(x, _arr);
+			_arr[pos]->_frq++;
 		}
-		delete Buffer;
+		else {
+			Huffman* tmp = new Huffman(x);
+			_arr.push_back(tmp);
+		}
+		
+	
 	}
+	
+	
 
-	_input.close();
+	f_read.close();
 }
 
 void Huffman::Arrange(vector <Huffman*>& _arr) {
@@ -271,9 +279,10 @@ string Huffman::ReadLine(int pos, string s) {
 	}
 }
 
-void Huffman::Encoding(string _name) {
-	vector <Huffman*> _arr;
-	Huffman::CreateNode(_name, _arr);
+void Huffman::Encoding(vector <Huffman*> _arr, vector <char> data, string outFile, string outFolder ) {
+	//vector <Huffman*> _arr;
+	//Huffman CreateNode(_name, _arr);
+
 	vector <Huffman*> _tmp = _arr; //Sao chep mang luu tru cac ky tu
 
 	//Tao ma cho tung nut
@@ -281,16 +290,16 @@ void Huffman::Encoding(string _name) {
 	string code = "";
 	Huffman::AddCode(root, code);
 
-
-	fstream _input;
-	fstream _output;
-	_input.open(_name, ios::in);
-	_output.open("Test01", ios::out | ios::binary);
-
-	if (_input.fail()) {
-		cout << "Can't open this file" << endl;
-		return;
+	if (outFolder != "") {
+		outFile = outFolder + "/" + outFile;
 	}
+	
+
+	
+	fstream _output;
+	_output.open(outFile, ios::out | ios::binary);
+
+	
 
 	//Ma hoa file txt
 	_output << _tmp.size() << endl; //Ghi lai bang ma Huffman de cho viec ma hoa
@@ -305,13 +314,12 @@ void Huffman::Encoding(string _name) {
 	}
 
 	string s;
-	while (!_input.eof()) {
-		char* Buffer = new char;
-		if (_input.read(Buffer, 1)) {
-			 s += FindCode(_tmp, *Buffer);
-		}
-		delete Buffer;
+
+	for (int i = 0; i < data.size(); i++) {
+
+		s += FindCode(_tmp, data[i]);
 	}
+	
 	_output << s.length() << endl;
 
 	_output << BinaryTo32(s);
@@ -320,16 +328,22 @@ void Huffman::Encoding(string _name) {
 		delete _tmp[i];
 	}
 
-	_input.close();
 	_output.close();
 	delete root;
-	_arr.clear();
+
 	_tmp.clear();
 }
 
-void Huffman::Decoding(string _name) {
+void Huffman::Decoding(string _name, string nameFolder, string nameOut) {
 	fstream _input;
-	_input.open(_name, ios::in | ios::binary);
+
+	string nameInput = _name;
+	if (nameOut != "") {
+
+		nameInput = nameFolder + "/" + _name;
+	}
+
+	_input.open(nameInput, ios::in | ios::binary);
 	if (_input.fail()) {
 		cout << "Can't open this file" << endl;
 		return;
@@ -381,7 +395,13 @@ void Huffman::Decoding(string _name) {
 
 	//Bat dau ma hoa va luu lai vao file txt
 	fstream _output;
-	_output.open("result.exe", ios::out);
+	
+	if (nameOut != "") {
+
+		_name = nameOut + "/" + _name;
+	}
+
+	_output.open(_name, ios::binary | ios::out);
 	if (_output.fail()) {
 		cout << "Failed";
 		return;
@@ -391,6 +411,7 @@ void Huffman::Decoding(string _name) {
 	string s = ""; //chuoi s de luu chuoi
 	string s1; //chuoi s1 dung de so sanh
 	for (int i = 0; i < tmp.size(); i++) {
+		cout << i << "\n";
 		s += tmp[i];
 		if (i + 1 < tmp.size()) {
 			s1 = s + tmp[i + 1];

@@ -1,0 +1,2 @@
+ac + a'b'c + a'c'd' + a'bcd
+xyzt + xy' + xz' + yz + xyz' + xyt
